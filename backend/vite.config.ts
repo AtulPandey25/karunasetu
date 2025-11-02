@@ -3,12 +3,6 @@ import path from "path";
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
-      name: "server",
-      fileName: "index",
-      formats: ["es"],
-    },
     outDir: "../dist/backend",
     target: "node22",
     ssr: {
@@ -18,6 +12,7 @@ export default defineConfig({
       noExternal: true,
     },
     rollupOptions: {
+      input: path.resolve(__dirname, "src/index.ts"),
       output: {
         format: "es",
         entryFileNames: "[name].mjs",
