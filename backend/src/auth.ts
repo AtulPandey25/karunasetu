@@ -31,6 +31,13 @@ export async function verifyAdminCredentials(
     return false;
   }
 
+  // This is the fix: Ensure adminPasswordHash is a valid string before proceeding.
+  // If it's null (because the ADMIN_PASSWORD env var was not set), immediately return false.
+  if (typeof adminPasswordHash !== 'string') {
+    console.error("Admin password hash is not initialized. Cannot verify credentials.");
+    return false;
+  }
+
   console.log("Comparing password with hash...");
   const isMatch = await compare(password, adminPasswordHash);
   console.log(`Password match result: ${isMatch}`);
