@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "vite build --config vite.config.ts",
-    "start": "node --env-file=../.env ../dist/backend/index.mjs",
+    "start": "node ../dist/backend/index.mjs",
+    "start:local": "node --env-file=../.env ../dist/backend/index.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
