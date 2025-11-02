@@ -129,7 +129,7 @@ Your backend needs to allow requests from your frontend's domain.
 
     const allowedOrigins = [
       'http://localhost:8080', // Your local dev frontend
-      'https://your-vercel-project-name.vercel.app' // Your production frontend URL
+      'https://karuna-setu-foundation.vercel.app' // Your production frontend URL
     ];
 
     app.use(cors({

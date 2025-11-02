@@ -33,7 +33,8 @@ connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
 const allowedOrigins = [
   'http://localhost:8080', // Local dev frontend
   'https://karunaapi.onrender.com', // Deployed backend
-  'https://karuna-setu.vercel.app' // Assumed Vercel frontend URL
+  'https://karuna-setu-foundation.vercel.app', // Production Vercel frontend URL
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '' // For Vercel preview deployments
 ];
 
 app.use(cors({
