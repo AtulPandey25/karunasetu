@@ -8,7 +8,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   },
   build: {
-    outDir: "../dist/backend",
+    outDir: "dist",
     target: "node22",
     ssr: {
       // This is the fix. By default, Vite externalizes all dependencies in SSR mode.

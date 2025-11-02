@@ -16,6 +16,7 @@
     "build:client": "vite build frontend",
     "build:server": "vite build backend",
     "start": "pnpm --prefix backend start",
+    "start:prod:local": "pnpm build && pnpm --prefix backend start:local",
     "vercel-build": "pnpm run build:client",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
