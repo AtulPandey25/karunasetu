@@ -1,4 +1,9 @@
-import "./dotenv-loader";
+if (import.meta.env.DEV) {
+  Promise.all([import('dotenv'), import('path'), import('url')]).then(([{ default: dotenv }, path, { fileURLToPath }]) => {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+  });
+}
 
 import express from "express";
 import cors from "cors";

@@ -2,6 +2,11 @@ import { defineConfig } from "vite";
 import path from "path";
 
 export default defineConfig({
+  // This is the fix. It replaces `process.env.NODE_ENV` with a string literal
+  // during the build, allowing dead code elimination to remove the `dotenv` import.
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+  },
   build: {
     outDir: "../dist/backend",
     target: "node22",
