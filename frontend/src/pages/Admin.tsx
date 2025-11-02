@@ -7,7 +7,7 @@ import type {
   GetMembersResponse,
 } from "../types/api";
 import { FormEvent, useEffect, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 import {
   DndContext,
   closestCenter,
@@ -69,11 +69,11 @@ export default function Admin() {
 
   const donorsQuery = useQuery<GetDonorsResponse>({
     queryKey: ["donors"],
-    queryFn: async () => apiGet("/api/donors", { donors: [] }),
+    queryFn: async () => apiClient.get("/donors").then(res => res.data || { donors: [] }),
   });
   const membersQuery = useQuery<GetMembersResponse>({
     queryKey: ["members"],
-    queryFn: async () => apiGet("/api/members", { members: [] }),
+    queryFn: async () => apiClient.get("/members").then(res => res.data || { members: [] }),
   });
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function Admin() {
     images: { _id?: string; title: string; url: string; featured?: boolean }[];
   }>({
     queryKey: ["gallery"],
-    queryFn: async () => apiGet("/api/gallery", { images: [] }),
+    queryFn: async () => apiClient.get("/gallery").then(res => res.data || { images: [] }),
   });
 
   const deleteGalleryMutation = useMutation({
