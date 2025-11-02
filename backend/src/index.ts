@@ -18,21 +18,9 @@ import membersRouter from "@/routes/members";
 import celebrationsRouter from "@/routes/celebrations";
 import ordersRouter from "@/routes/orders";
 
+
 const app = express();
 
-// Initialize
-initAdminHash().catch(err => console.error("Failed to init admin hash", err));
-connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
-
-
-// Health check
-app.get("/health", (_req, res) => res.json({ ok: true }));
-
-// Static files
-const uploadsPath = path.resolve(__dirname, "../public/uploads");
-app.use("/uploads", express.static(uploadsPath));
-
-// Middleware MUST be configured before routes
 const allowedOrigins = [
   'http://localhost:8080', // Local dev frontend
   'https://karunaapi.onrender.com', // Deployed backend
@@ -52,6 +40,24 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+
+// Initialize
+initAdminHash().catch(err => console.error("Failed to init admin hash", err));
+connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
+
+
+// Health check
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// Static files
+const uploadsPath = path.resolve(__dirname, "../public/uploads");
+app.use("/uploads", express.static(uploadsPath));
+
+// Middleware MUST be configured before routes
+
+
+
 
 // API Routes
 app.get("/api/ping", (_req, res) => {
