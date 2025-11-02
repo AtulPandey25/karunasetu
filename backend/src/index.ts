@@ -24,7 +24,15 @@ const app = express();
 initAdminHash().catch(err => console.error("Failed to init admin hash", err));
 connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
 
-// Middleware
+
+// Health check
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+// Static files
+const uploadsPath = path.resolve(__dirname, "../public/uploads");
+app.use("/uploads", express.static(uploadsPath));
+
+// Middleware MUST be configured before routes
 const allowedOrigins = [
   'http://localhost:8080', // Local dev frontend
   'https://karunaapi.onrender.com', // Deployed backend
@@ -42,16 +50,8 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 app.use(express.json());
-
-
-
-// Health check
-app.get("/health", (_req, res) => res.json({ ok: true }));
-
-// Static files
-const uploadsPath = path.resolve(__dirname, "../public/uploads");
-app.use("/uploads", express.static(uploadsPath));
 
 // API Routes
 app.get("/api/ping", (_req, res) => {
