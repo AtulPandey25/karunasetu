@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import type { GetGalleryResponse } from "../types/api";
-import { apiGet } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 
 export default function Gallery() {
   const { data, isLoading } = useQuery<GetGalleryResponse>({
     queryKey: ["gallery"],
-    queryFn: async () => apiGet("/api/gallery", { images: [] }),
+    queryFn: async () => apiClient.get("/gallery").then(res => res.data || { images: [] }),
   });
 
   const images = data?.images ?? [];

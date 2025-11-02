@@ -3,19 +3,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import type { Donor, GetDonorsResponse, GetGalleryResponse } from "../types/api";
 import { Link } from "react-router-dom";
-import { apiGet } from "@/lib/api";
+import { apiClient } from "@/lib/api-client";
 import EventBanner from "@/components/EventBanner";
 
 export default function Index() {
   const { data } = useQuery<GetDonorsResponse>({
     queryKey: ["donors"],
-    queryFn: async () => apiGet("/api/donors", { donors: [] }),
+    queryFn: async () => apiClient.get("/donors").then(res => res.data || { donors: [] }),
   });
   const donors = (data?.donors ?? []) as Donor[];
 
   const membersQuery = useQuery<{ members: any[] }>({
     queryKey: ["members"],
-    queryFn: async () => apiGet("/api/members", { members: [] }),
+    queryFn: async () => apiClient.get("/members").then(res => res.data || { members: [] }),
   });
   const members = membersQuery.data?.members || [];
 
@@ -651,7 +651,7 @@ function StatCard({ value, label }: { value: string; label: string }) {
 function HeroSlideshow() {
   const { data } = useQuery<GetGalleryResponse>({
     queryKey: ["gallery-hero"],
-    queryFn: async () => apiGet("/api/gallery/featured", { images: [] }),
+    queryFn: async () => apiClient.get("/gallery/featured").then(res => res.data || { images: [] }),
   });
   const imgs = data?.images || [];
   const [idx, setIdx] = useState(0);
