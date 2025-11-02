@@ -1,12 +1,11 @@
 if (process.env.NODE_ENV !== 'production') {
-  // This is the definitive fix. By constructing the package name from a
-  // variable, we prevent Vite's static analysis from hoisting the import.
-  // This ensures `dotenv` is never included in the production bundle.
-  Promise.all([import('module'), import('path')]).then(([{ createRequire }, path]) => {
-    const require = createRequire(import.meta.url);
-    const dotenvPackageName = 'dotenv';
-    const dotenv = require(dotenvPackageName);
-    const __dirname = path.dirname(new URL(import.meta.url).pathname);
-    dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-  });
+  // Use a dynamic import that we can await at the top level.
+  // This ensures that the .env file is loaded synchronously before any other
+  // application code runs, fixing the race condition.
+  const { default: dotenv } = await import('dotenv');
+  const { default: path } = await import('path');
+  const { fileURLToPath } = await import('url');
+
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 }

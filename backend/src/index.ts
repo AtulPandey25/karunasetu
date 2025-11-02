@@ -1,4 +1,14 @@
-import "./dotenv-loader";
+async function loadEnv() {
+  if (process.env.NODE_ENV !== 'production') {
+    const { default: dotenv } = await import('dotenv');
+    const { default: path } = await import('path');
+    const { fileURLToPath } = await import('url');
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+  }
+}
+
+await loadEnv();
 
 import express from "express";
 import cors from "cors";
