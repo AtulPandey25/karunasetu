@@ -1,0 +1,40 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Build output
+/dist
+/dist-ssr
+/.builder/
+
+# Logs & Caches
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.vite-node/
+.wrangler/
+
+# Local Environment Variables
+# Never commit this file! It contains secrets.
+.env
+.env.local
+.env.*.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-generated files
+.DS_Store
+Thumbs.db
