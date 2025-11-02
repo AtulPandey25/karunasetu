@@ -1,4 +1,6 @@
-const API_BASE = "/api";
+// In production, use the full backend URL from the environment variable.
+// In development, use the relative path which will be handled by the Vite proxy.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 interface ApiResponse<T> {
   ok: boolean;
