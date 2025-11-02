@@ -72,9 +72,9 @@ async function startServer() {
   app.use("/api/celebrations", celebrationsRouter);
   app.use("/api/orders", ordersRouter);
 
-  // Initialize critical components after setting up routes
-  initAdminHash().catch(err => console.error("Failed to init admin hash", err));
-  connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
+  // Await critical initializations before starting the server
+  await initAdminHash();
+  await connectMongo();
 
   // Start server
   const PORT = process.env.PORT || 8000;
