@@ -11,7 +11,12 @@ export default defineConfig({
     },
     outDir: "../dist/backend",
     target: "node22",
-    ssr: true,
+    ssr: {
+      // This is the fix. By default, Vite externalizes all dependencies in SSR mode.
+      // Setting `noExternal: true` forces Vite to bundle all dependencies
+      // into the output file, which is what we need for a portable deployment.
+      noExternal: true,
+    },
     rollupOptions: {
       output: {
         format: "es",
