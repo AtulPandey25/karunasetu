@@ -1,6 +1,6 @@
 // In production, use the full backend URL from the environment variable.
 // In development, use the relative path which will be handled by the Vite proxy.
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 interface ApiResponse<T> {
   ok: boolean;
@@ -33,12 +33,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
 export const authApi = {
   async login(email: string, password: string): Promise<ApiResponse<{ token: string }>> {
-    const response = await fetch(`${API_BASE}/admin/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    return handleResponse<{ token: string }>(response);
+    return apiClient.post("/admin/login", { email, password });
   },
 };
 
@@ -54,20 +49,11 @@ export const galleryApi = {
     }
     if (title) formData.append("title", title);
 
-    const response = await fetch(`${API_BASE}/gallery/admin`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    return handleResponse<{ images: any[] }>(response);
+    return apiClient.post("/gallery/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    const response = await fetch(`${API_BASE}/gallery/admin/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse<{ ok: boolean }>(response);
+    return apiClient.delete(`/gallery/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async toggleFeatured(
@@ -75,15 +61,9 @@ export const galleryApi = {
     featured: boolean,
     token: string
   ): Promise<ApiResponse<{ image: any }>> {
-    const response = await fetch(`${API_BASE}/gallery/admin/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ featured }),
+    return apiClient.patch(`/gallery/admin/${id}`, { featured }, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    return handleResponse<{ image: any }>(response);
   },
 };
 
@@ -109,35 +89,20 @@ export const donorsApi = {
       formData.append("donatedCommodity", donor.donatedCommodity);
     if (logo) formData.append("logo", logo);
 
-    const response = await fetch(`${API_BASE}/donors/admin`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    return handleResponse<{ donor: any }>(response);
+    return apiClient.post("/donors/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    const response = await fetch(`${API_BASE}/donors/admin/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse<{ ok: boolean }>(response);
+    return apiClient.delete(`/donors/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async reorder(
     orderedIds: string[],
     token: string
   ): Promise<ApiResponse<{ ok: boolean }>> {
-    const response = await fetch(`${API_BASE}/donors/admin/reorder`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ orderedIds }),
+    return apiClient.post("/donors/admin/reorder", { orderedIds }, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    return handleResponse<{ ok: boolean }>(response);
   },
 };
 
@@ -163,51 +128,36 @@ export const membersApi = {
     if (member.contact) formData.append("contact", member.contact);
     if (photo) formData.append("photo", photo);
 
-    const response = await fetch(`${API_BASE}/members/admin`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    return handleResponse<{ member: any }>(response);
+    return apiClient.post("/members/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    const response = await fetch(`${API_BASE}/members/admin/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return handleResponse<{ ok: boolean }>(response);
+    return apiClient.delete(`/members/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   },
 
   async reorder(
     orderedIds: string[],
     token: string
   ): Promise<ApiResponse<{ ok: boolean }>> {
-    const response = await fetch(`${API_BASE}/members/admin/reorder`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ orderedIds }),
+    return apiClient.post("/members/admin/reorder", { orderedIds }, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    return handleResponse<{ ok: boolean }>(response);
   },
 };
 
 export const apiClient = {
-  async get<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${API_BASE}${url}`, options);
+  async get<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const response = await fetch(`${API_BASE}/api${path}`, options);
     return handleResponse<T>(response);
   },
 
-  async post<T>(url: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async post<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
     const headers = new Headers(options?.headers);
     if (!(body instanceof FormData)) {
       headers.set('Content-Type', 'application/json');
     }
 
-    const response = await fetch(`${API_BASE}${url}`, {
+    const response = await fetch(`${API_BASE}/api${path}`, {
       method: 'POST',
       ...options,
       headers,
@@ -216,13 +166,13 @@ export const apiClient = {
     return handleResponse<T>(response);
   },
 
-  async patch<T>(url: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async patch<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
     const headers = new Headers(options?.headers);
     if (!(body instanceof FormData)) {
       headers.set('Content-Type', 'application/json');
     }
 
-    const response = await fetch(`${API_BASE}${url}`, {
+    const response = await fetch(`${API_BASE}/api${path}`, {
       method: 'PATCH',
       ...options,
       headers,
@@ -231,8 +181,8 @@ export const apiClient = {
     return handleResponse<T>(response);
   },
 
-  async delete<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    const response = await fetch(`${API_BASE}${url}`, {
+  async delete<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const response = await fetch(`${API_BASE}/api${path}`, {
       method: 'DELETE',
       ...options,
     });
