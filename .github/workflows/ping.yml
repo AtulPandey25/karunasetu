@@ -2,7 +2,7 @@ name: Keep Render Alive
 
 on:
   schedule:
-    - cron: "*/14 * * * *"   # every 14 minutes
+    - cron: "*/12 * * * *"   # every 14 minutes
   workflow_dispatch:          # allow manual trigger
 
 jobs:
@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Curl Render App
-        run: curl -s https://karunasetu.onrender.com > /dev/null
+        run: curl -s https://karunaapi.onrender.com > /dev/null

@@ -69,9 +69,9 @@ Value: your_cloudinary_api_secret
 
 1.  Click **Create Web Service**.
 2.  Render will begin building and deploying your backend. You can watch the logs in the "Logs" tab.
-3.  Once the deployment is successful, your API will be live. Render will provide you with a public URL, which will look something like `https://karunasetu-api.onrender.com`.
+3.  Once the deployment is successful, your API will be live. Render will provide you with a public URL, which is `https://karunaapi.onrender.com`.
 
-**➡️ Copy this backend URL. You will need it for the frontend deployment.**
+**➡️ Your backend URL is `https://karunaapi.onrender.com`. You will need this for the frontend deployment.**
 
 ---
 
@@ -103,7 +103,7 @@ This step tells your frontend where to send API requests in production.
 1.  Expand the **Environment Variables** section.
 2.  Add a new variable:
     -   **Name**: `VITE_API_BASE_URL`
-    -   **Value**: Paste the URL of your deployed Render backend from Part A (e.g., `https://karunasetu-api.onrender.com`).
+    -   **Value**: `https://karunaapi.onrender.com`
 
 ### Step 4: Deploy
 

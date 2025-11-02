@@ -25,7 +25,22 @@ initAdminHash().catch(err => console.error("Failed to init admin hash", err));
 connectMongo().catch(err => console.error("Failed to connect MongoDB", err));
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:8080', // Local dev frontend
+  'https://karunaapi.onrender.com', // Deployed backend
+  'https://karuna-setu.vercel.app' // Assumed Vercel frontend URL
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 
