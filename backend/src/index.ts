@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import multer from "multer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { connectMongo } from "@/db";
@@ -54,6 +55,7 @@ async function startServer() {
   // Parse JSON broadly to handle proxies that tweak content-type
   app.use(express.json({ type: ["application/json", "text/plain", "application/*+json" ] }));
   app.use(express.urlencoded({ extended: true }));
+  app.use(multer().none());
 
   // Health check
   app.get("/health", (_req, res) => res.json({ ok: true }));
