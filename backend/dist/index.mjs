@@ -1300,7 +1300,7 @@ const OrderSchema = new Schema(
 const OrderModel = mongoose.model("Order", OrderSchema);
 const router = Router();
 router.use(json());
-router.post("/", (async (req, res) => {
+router.post("/", async (req, res) => {
   const { customerName, customerEmail, customerPhone, items } = req.body;
   if (!customerName || !customerEmail || !customerPhone || !items?.length) {
     return res.status(400).json({
@@ -1327,8 +1327,8 @@ router.post("/", (async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to create order" });
   }
-}));
-router.get("/:id", (async (req, res) => {
+});
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const { connected } = await connectMongo();
   if (!connected) {
@@ -1344,8 +1344,8 @@ router.get("/:id", (async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to fetch order" });
   }
-}));
-router.post("/:id/confirm", (async (req, res) => {
+});
+router.post("/:id/confirm", async (req, res) => {
   const { id } = req.params;
   const { connected } = await connectMongo();
   if (!connected) {
@@ -1365,7 +1365,7 @@ router.post("/:id/confirm", (async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to confirm order payment" });
   }
-}));
+});
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 async function startServer() {
   const app = express();
