@@ -48,7 +48,7 @@ export async function verifyAdminCredentials(
 export function createAdminToken(): string {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET not configured");
+    throw new Error("ADMIN_JWT_SECRET not configured");
   }
   return jwt.sign({ admin: true }, secret, { expiresIn: "1h" });
 }

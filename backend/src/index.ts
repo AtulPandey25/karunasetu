@@ -1,15 +1,4 @@
-async function loadEnv() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { default: dotenv } = await import('dotenv');
-    const { default: path } = await import('path');
-    const { fileURLToPath } = await import('url');
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-  }
-}
-
-await loadEnv();
-
+import "./preload";
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -33,22 +22,33 @@ async function startServer() {
   const app = express();
 
   // Middleware MUST be configured before routes
-  const allowedOrigins = [
-    'http://localhost:8080', // Local dev frontend
-    'https://karunaapi.onrender.com', // Deployed backend
-    'https://karuna-setu-foundation.vercel.app', // Production Vercel frontend URL
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '' // For Vercel preview deployments
-  ];
+  const exactAllowedOrigins = new Set([
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'https://karuna-setu-foundation.vercel.app',
+  ]);
+
+  const vercelPreviewRegex = /^https?:\/\/.*\.vercel\.app$/i;
 
   app.use(cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      // Allow same-origin/no-origin requests (like curl or server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (
+        exactAllowedOrigins.has(origin) ||
+        vercelPreviewRegex.test(origin)
+      ) {
+        return callback(null, true);
       }
+
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 204,
   }));
 
   app.use(express.json());

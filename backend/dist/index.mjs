@@ -1,13 +1,16 @@
-import express, { Router, json } from "express";
-import cors from "cors";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import express, { Router, json } from "express";
+import cors from "cors";
 import mongoose, { Schema } from "mongoose";
 import { hash, compare } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import fs from "fs";
 import { v2 } from "cloudinary";
+const __dirname$6 = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname$6, "../../.env") });
 let isConnected = false;
 async function connectMongo(uri) {
   const mongoUri = process.env.MONGODB_URI;
@@ -53,6 +56,10 @@ async function verifyAdminCredentials(email, password) {
     console.log("adminPasswordHash is not set.");
     return false;
   }
+  if (typeof adminPasswordHash !== "string") {
+    console.error("Admin password hash is not initialized. Cannot verify credentials.");
+    return false;
+  }
   console.log("Comparing password with hash...");
   const isMatch = await compare(password, adminPasswordHash);
   console.log(`Password match result: ${isMatch}`);
@@ -61,7 +68,7 @@ async function verifyAdminCredentials(email, password) {
 function createAdminToken() {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET not configured");
+    throw new Error("ADMIN_JWT_SECRET not configured");
   }
   return jwt.sign({ admin: true }, secret, { expiresIn: "1h" });
 }
@@ -497,9 +504,6 @@ router$4.post(
   requireAdminKey,
   (req, res) => donorController.reorder(req, res)
 );
-initAdminHash().catch((err) => {
-  console.error("Failed to init admin hash", err);
-});
 class AuthController {
   async login(req, res) {
     const { email, password } = req.body;
@@ -1361,42 +1365,51 @@ router.post("/:id/confirm", (async (req, res) => {
   }
 }));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const app = express();
-initAdminHash().catch((err) => console.error("Failed to init admin hash", err));
-connectMongo().catch((err) => console.error("Failed to connect MongoDB", err));
-const allowedOrigins = [
-  "http://localhost:8080",
-  // Local dev frontend
-  "https://karunaapi.onrender.com",
-  // Deployed backend
-  "https://karuna-setu.vercel.app"
-  // Assumed Vercel frontend URL
-];
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
-app.use(express.json());
-app.get("/health", (_req, res) => res.json({ ok: true }));
-const uploadsPath = path.resolve(__dirname, "../public/uploads");
-app.use("/uploads", express.static(uploadsPath));
-app.get("/api/ping", (_req, res) => {
-  res.json({ message: process.env.PING_MESSAGE || "pong" });
-});
-app.get("/api/demo", handleDemo);
-app.use("/api/admin", router$3);
-app.use("/api/gallery", router$5);
-app.use("/api/donors", router$4);
-app.use("/api/members", router$2);
-app.use("/api/celebrations", router$1);
-app.use("/api/orders", router);
-const PORT = process.env.PORT || 8e3;
-app.listen(PORT, () => {
+async function startServer() {
+  const app = express();
+  const exactAllowedOrigins = /* @__PURE__ */ new Set([
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "https://karuna-setu-foundation.vercel.app"
+  ]);
+  const vercelPreviewRegex = /^https?:\/\/.*\.vercel\.app$/i;
+  app.use(cors({
+    origin: function(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (exactAllowedOrigins.has(origin) || vercelPreviewRegex.test(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
+  }));
+  app.use(express.json());
+  app.get("/health", (_req, res) => res.json({ ok: true }));
+  const uploadsPath = path.resolve(__dirname, "../public/uploads");
+  app.use("/uploads", express.static(uploadsPath));
+  app.get("/api/ping", (_req, res) => {
+    res.json({ message: process.env.PING_MESSAGE || "pong" });
+  });
+  app.get("/api/demo", handleDemo);
+  app.use("/api/admin", router$3);
+  app.use("/api/gallery", router$5);
+  app.use("/api/donors", router$4);
+  app.use("/api/members", router$2);
+  app.use("/api/celebrations", router$1);
+  app.use("/api/orders", router);
+  await initAdminHash();
+  await connectMongo();
+  const PORT = process.env.PORT || 8e3;
+  app.listen(PORT, () => {
+    console.log(`✅ Server listening on port ${PORT}`);
+  });
+}
+startServer().catch((err) => {
+  console.error("❌ Failed to start server:", err);
+  process.exit(1);
 });
 //# sourceMappingURL=index.mjs.map
