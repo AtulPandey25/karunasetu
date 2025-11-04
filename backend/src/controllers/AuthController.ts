@@ -6,7 +6,7 @@ import {
 
 export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
-    const { email, password } = req.body as {
+    const { email, password } = (req.body ?? {}) as {
       email?: string;
       password?: string;
     };
