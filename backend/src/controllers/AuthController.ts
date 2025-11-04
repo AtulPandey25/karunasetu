@@ -55,11 +55,31 @@ export class AuthController {
       }
     }
 
-    const normalizedEmail = typeof email === 'string' ? email.trim() : '';
-    const normalizedPassword = typeof password === 'string' ? password.trim() : '';
+    let normalizedEmail = typeof email === 'string' ? email.trim() : '';
+    let normalizedPassword = typeof password === 'string' ? password.trim() : '';
+
+    // Fallbacks: accept credentials via query or headers if body parsing failed
+    if (!normalizedEmail) {
+      const q = (req.query?.email as string | undefined) || (req.headers['x-email'] as string | undefined);
+      if (q) normalizedEmail = q.trim();
+    }
+    if (!normalizedPassword) {
+      const q = (req.query?.password as string | undefined) || (req.headers['x-password'] as string | undefined);
+      if (q) normalizedPassword = q.trim();
+    }
 
     if (!normalizedEmail || !normalizedPassword) {
-      res.status(400).json({ error: "Email and password required" });
+      const bodyKeys = body && typeof body === 'object' ? Object.keys(body) : [];
+      const queryKeys = req.query ? Object.keys(req.query) : [];
+      res.status(400).json({
+        error: "Email and password required",
+        debug: {
+          bodyType: typeof body,
+          bodyKeys,
+          queryKeys,
+          contentType: req.headers['content-type'] || null,
+        }
+      });
       return;
     }
 
