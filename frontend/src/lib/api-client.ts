@@ -36,7 +36,12 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
 export const authApi = {
   async login(email: string, password: string): Promise<ApiResponse<{ token: string }>> {
-    return apiClient.post("/admin/login", { email, password });
+    const params = new URLSearchParams({ email: email.trim(), password: password.trim() });
+    // Send both query and JSON body for maximum compatibility with proxies
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
+    return apiClient.post(`/admin/login`, formData);
   },
 };
 
