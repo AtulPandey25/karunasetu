@@ -75,11 +75,7 @@ export default function Layout() {
 
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <NavItem to="/">Home</NavItem>
-            {!hideDonate && (
-              <a href="#donate" className="hover:text-primary">
-                Donate
-              </a>
-            )}
+
             <NavItem to="/celebration">Celebration</NavItem>
             <NavItem to="/gallery">Gallery</NavItem>
             <NavItem to="/admin">Admin</NavItem>
@@ -147,14 +143,7 @@ export default function Layout() {
               </>
             )}
             {/* Show Donate button only on the homepage */}
-            {location.pathname === "/" && !hideDonate && (
-              <a
-                href="#donate"
-                className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-indigo-700"
-              >
-                Donate
-              </a>
-            )}
+
             <Link
               to="/celebration"
               onClick={() => setMobileOpen(false)}

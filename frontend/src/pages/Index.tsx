@@ -113,18 +113,26 @@ export default function Index() {
               Bridging compassion through education, healthcare, and community
               development initiatives across India.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#donate"
-                className="inline-flex items-center rounded-md bg-primary px-5 py-3 text-primary-foreground shadow hover:opacity-90"
-              >
-                Donate Now
-              </a>
+            <div className="mt-8 flex flex-col gap-3">
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#donate"
+                  className="inline-flex items-center rounded-md bg-primary px-5 py-3 text-primary-foreground shadow hover:opacity-90"
+                >
+                  Donate Now
+                </a>
+                <Link
+                  to="/gallery"
+                  className="inline-flex items-center rounded-md border px-5 py-3 hover:bg-muted"
+                >
+                  View Gallery
+                </Link>
+              </div>
               <Link
-                to="/gallery"
-                className="inline-flex items-center rounded-md border px-5 py-3 hover:bg-muted"
+                to="/celebration"
+                className="inline-flex items-center w-[270px] justify-center rounded-md border border-yellow-500 bg-white px-5 py-3 text-yellow-700 shadow hover:bg-yellow-50"
               >
-                View Gallery
+                Celebrate
               </Link>
             </div>
           </div>

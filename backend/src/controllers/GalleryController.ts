@@ -67,7 +67,7 @@ export class GalleryController {
 
   async toggleFeatured(req: Request, res: Response): Promise<void> {
     const id = req.params.id;
-    const { featured } = req.body as { featured?: boolean };
+    const { featured } = (req.body || {}) as { featured?: boolean };
     const { connected } = await connectMongo();
     if (!connected) {
       res.status(503).json({ error: "Database not configured" });
