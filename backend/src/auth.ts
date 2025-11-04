@@ -18,16 +18,10 @@ export async function verifyAdminCredentials(
   email: string,
   password: string
 ): Promise<boolean> {
-  console.log(`ADMIN_EMAIL from .env: ${ADMIN_EMAIL}`);
-  console.log(`Attempting to verify credentials for email: ${email}`);
-  console.log(`Received password: ${password}`);
-
   if (email !== ADMIN_EMAIL) {
-    console.log("Email does not match ADMIN_EMAIL.");
     return false;
   }
   if (!adminPasswordHash) {
-    console.log("adminPasswordHash is not set.");
     return false;
   }
 
@@ -38,9 +32,7 @@ export async function verifyAdminCredentials(
     return false;
   }
 
-  console.log("Comparing password with hash...");
   const isMatch = await compare(password, adminPasswordHash);
-  console.log(`Password match result: ${isMatch}`);
 
   return isMatch;
 }

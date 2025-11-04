@@ -45,24 +45,17 @@ async function initAdminHash() {
   console.log("✅ Admin password hash initialized");
 }
 async function verifyAdminCredentials(email, password) {
-  console.log(`ADMIN_EMAIL from .env: ${ADMIN_EMAIL}`);
-  console.log(`Attempting to verify credentials for email: ${email}`);
-  console.log(`Received password: ${password}`);
   if (email !== ADMIN_EMAIL) {
-    console.log("Email does not match ADMIN_EMAIL.");
     return false;
   }
   if (!adminPasswordHash) {
-    console.log("adminPasswordHash is not set.");
     return false;
   }
   if (typeof adminPasswordHash !== "string") {
     console.error("Admin password hash is not initialized. Cannot verify credentials.");
     return false;
   }
-  console.log("Comparing password with hash...");
   const isMatch = await compare(password, adminPasswordHash);
-  console.log(`Password match result: ${isMatch}`);
   return isMatch;
 }
 function createAdminToken() {
@@ -511,13 +504,22 @@ class AuthController {
       res.status(400).json({ error: "Email and password required" });
       return;
     }
-    const ok = await verifyAdminCredentials(email, password);
-    if (!ok) {
-      res.status(401).json({ error: "Invalid credentials" });
+    if (!process.env.ADMIN_JWT_SECRET) {
+      res.status(500).json({ error: "Server misconfigured: ADMIN_JWT_SECRET not set" });
       return;
     }
-    const token = createAdminToken();
-    res.json({ token });
+    try {
+      const ok = await verifyAdminCredentials(email, password);
+      if (!ok) {
+        res.status(401).json({ error: "Invalid credentials" });
+        return;
+      }
+      const token = createAdminToken();
+      res.json({ token });
+    } catch (err) {
+      const message = err?.message || "Internal error";
+      res.status(500).json({ error: message });
+    }
   }
 }
 const router$3 = Router();

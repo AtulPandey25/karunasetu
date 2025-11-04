@@ -16,13 +16,24 @@ export class AuthController {
       return;
     }
 
-    const ok = await verifyAdminCredentials(email, password);
-    if (!ok) {
-      res.status(401).json({ error: "Invalid credentials" });
+    // Ensure server is properly configured
+    if (!process.env.ADMIN_JWT_SECRET) {
+      res.status(500).json({ error: "Server misconfigured: ADMIN_JWT_SECRET not set" });
       return;
     }
 
-    const token = createAdminToken();
-    res.json({ token });
+    try {
+      const ok = await verifyAdminCredentials(email, password);
+      if (!ok) {
+        res.status(401).json({ error: "Invalid credentials" });
+        return;
+      }
+
+      const token = createAdminToken();
+      res.json({ token });
+    } catch (err: any) {
+      const message = err?.message || "Internal error";
+      res.status(500).json({ error: message });
+    }
   }
 }

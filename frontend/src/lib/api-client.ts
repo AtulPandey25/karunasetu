@@ -1,7 +1,9 @@
 // In production, use the full backend URL from the environment variable.
 // In development, use the relative path which will be handled by the Vite proxy.
-// Use explicit env when provided; otherwise default to the deployed backend URL
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://karunaapi.onrender.com";
+// In development, use Vite proxy by leaving base empty. In production, use env or fallback URL.
+const API_BASE = import.meta.env.PROD
+  ? (import.meta.env.VITE_API_BASE_URL || "https://karunaapi.onrender.com")
+  : "";
 
 interface ApiResponse<T> {
   ok: boolean;

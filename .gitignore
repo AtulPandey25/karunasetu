@@ -6,6 +6,8 @@
 # Build output
 /dist
 /dist-ssr
+/backend/dist
+/frontend/dist
 /.builder/
 
 # Logs & Caches
