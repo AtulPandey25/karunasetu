@@ -66,6 +66,8 @@ async function startServer() {
     res.json({ message: process.env.PING_MESSAGE || "pong" });
   });
   app.get("/api/demo", handleDemo);
+  // Ensure admin login can parse raw text JSON if upstream parser fails
+  app.post("/api/admin/login", express.text({ type: 'application/json' }));
   app.use("/api/admin", authRouter);
   app.use("/api/gallery", galleryRouter);
   app.use("/api/donors", donorsRouter);

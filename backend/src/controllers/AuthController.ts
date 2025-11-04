@@ -6,7 +6,15 @@ import {
 
 export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
-    const { email, password } = (req.body ?? {}) as {
+    let body: any = req.body ?? {};
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        body = {};
+      }
+    }
+    const { email, password } = body as {
       email?: unknown;
       password?: unknown;
     };
