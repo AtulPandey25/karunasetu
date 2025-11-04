@@ -51,7 +51,20 @@ async function startServer() {
     optionsSuccessStatus: 204,
   }));
 
-  app.use(express.json());
+  // Capture raw body for cases where upstream/proxies confuse body parsers
+  app.use((req, _res, next) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += chunk;
+    });
+    req.on("end", () => {
+      (req as any).rawBody = raw;
+      next();
+    });
+  });
+
+  // Parse JSON broadly to handle proxies that tweak content-type
+  app.use(express.json({ type: ["application/json", "text/plain", "application/*+json" ] }));
   app.use(express.urlencoded({ extended: true }));
 
   // Health check
@@ -66,8 +79,6 @@ async function startServer() {
     res.json({ message: process.env.PING_MESSAGE || "pong" });
   });
   app.get("/api/demo", handleDemo);
-  // Ensure admin login can parse raw text JSON if upstream parser fails
-  app.post("/api/admin/login", express.text({ type: 'application/json' }));
   app.use("/api/admin", authRouter);
   app.use("/api/gallery", galleryRouter);
   app.use("/api/donors", donorsRouter);
