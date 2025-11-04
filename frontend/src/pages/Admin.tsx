@@ -112,7 +112,12 @@ export default function Admin() {
   const loginMutation = useMutation({
     mutationFn: async () => {
       const { authApi } = await import("@/lib/api-client");
-      const result = await authApi.login(email, password);
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
+      if (!trimmedEmail || !trimmedPassword) {
+        throw new Error("Email and password required");
+      }
+      const result = await authApi.login(trimmedEmail, trimmedPassword);
       if (!result.ok) throw new Error(result.error || "Login failed");
       return result.data;
     },
@@ -361,28 +366,41 @@ export default function Admin() {
         <p className="text-muted-foreground mt-2">
           Sign in with your admin credentials.
         </p>
-        <div className="mt-6 w-full max-w-md">
+        <form
+          className="mt-6 w-full max-w-md"
+          onSubmit={(e) => {
+            e.preventDefault();
+            loginMutation.mutate();
+          }}
+        >
           <input
             className="w-full rounded-md border px-3 py-2 mb-3"
+            type="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
           />
           <input
             className="w-full rounded-md border px-3 py-2 mb-3"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
           />
           <div className="flex gap-3">
             <button
+              type="submit"
               className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
-              onClick={() => loginMutation.mutate()}
-              disabled={isMutating(loginMutation)}
+              disabled={isMutating(loginMutation) || !email.trim() || !password.trim()}
             >
               Login
             </button>
           </div>
-        </div>
+        </form>
       </section>
     );
   }
