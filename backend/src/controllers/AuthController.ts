@@ -68,6 +68,23 @@ export class AuthController {
       if (q) normalizedPassword = q.trim();
     }
 
+    // Fallback: HTTP Basic auth (Authorization: Basic base64(email:password))
+    if (!normalizedEmail || !normalizedPassword) {
+      const auth = req.headers['authorization'];
+      if (auth && typeof auth === 'string' && auth.startsWith('Basic ')) {
+        try {
+          const decoded = Buffer.from(auth.replace('Basic ', ''), 'base64').toString('utf8');
+          const idx = decoded.indexOf(':');
+          if (idx > -1) {
+            const e = decoded.slice(0, idx).trim();
+            const p = decoded.slice(idx + 1).trim();
+            if (!normalizedEmail && e) normalizedEmail = e;
+            if (!normalizedPassword && p) normalizedPassword = p;
+          }
+        } catch {}
+      }
+    }
+
     if (!normalizedEmail || !normalizedPassword) {
       const bodyKeys = body && typeof body === 'object' ? Object.keys(body) : [];
       const queryKeys = req.query ? Object.keys(req.query) : [];
