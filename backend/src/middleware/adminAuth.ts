@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { verifyAdminToken } from "../auth";
+import { verifyToken } from "../auth";
 
 export const requireAdminKey: RequestHandler = (req, res, next) => {
   // Support legacy x-admin-key header
@@ -17,7 +17,7 @@ export const requireAdminKey: RequestHandler = (req, res, next) => {
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const verified = verifyAdminToken(token);
+  const verified = verifyToken(token);
 
   if (!verified) {
     return res.status(401).json({ error: "Unauthorized" });

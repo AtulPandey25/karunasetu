@@ -44,9 +44,6 @@ function SortableItem(props: { id: string; children: React.ReactNode; className?
 
 export function CelebrationsAdmin() {
   const qc = useQueryClient();
-  const [token] = useState<string | null>(
-    localStorage.getItem("adminToken")
-  );
   const [orderedCelebrations, setOrderedCelebrations] = useState<any[]>([]);
   const [isDragMode, setIsDragMode] = useState(false);
 
@@ -63,7 +60,7 @@ export function CelebrationsAdmin() {
 
   const reorderCelebrationsMutation = useMutation({
     mutationFn: (orderedIds: string[]) =>
-      celebrationsApi.reorder(orderedIds, token || ""),
+      celebrationsApi.reorder(orderedIds),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["celebrations"] });
       setIsDragMode(false);
@@ -75,7 +72,7 @@ export function CelebrationsAdmin() {
   });
 
   const createCelebrationMutation = useMutation({
-    mutationFn: (data: FormData) => celebrationsApi.create(data, token || ""),
+    mutationFn: (data: FormData) => celebrationsApi.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["celebrations"] });
       alert("Celebration added successfully!");
@@ -89,14 +86,6 @@ export function CelebrationsAdmin() {
   const handleCreateCelebration = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-
-    // Log FormData contents for debugging
-    const formDataObject: { [key: string]: any } = {};
-    formData.forEach((value, key) => {
-      formDataObject[key] = value;
-    });
-    console.log("FormData:", formDataObject);
-    console.log("Token:", token);
 
     createCelebrationMutation.mutate(formData);
     e.currentTarget.reset();
@@ -205,14 +194,11 @@ export function CelebrationsAdmin() {
 
 function CelebrationCard({ celebration }: { celebration: { _id: string; title: string; description?: string; isEvent?: boolean; imageUrl?: string; } }) {
   const qc = useQueryClient();
-  const [token] = useState<string | null>(
-    localStorage.getItem("adminToken")
-  );
   const [isEditing, setIsEditing] = useState(false);
   const [isManagingProducts, setIsManagingProducts] = useState(false);
 
   const deleteCelebrationMutation = useMutation({
-    mutationFn: () => celebrationsApi.delete(celebration._id, token || ""),
+    mutationFn: () => celebrationsApi.delete(celebration._id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["celebrations"] });
     },
@@ -261,13 +247,10 @@ function CelebrationCard({ celebration }: { celebration: { _id: string; title: s
 
 function EditCelebrationForm({ celebration, onFinished }: { celebration: any, onFinished: () => void }) {
   const qc = useQueryClient();
-  const [token] = useState<string | null>(
-    localStorage.getItem("adminToken")
-  );
 
   const updateCelebrationMutation = useMutation({
     mutationFn: (data: FormData) =>
-      celebrationsApi.update(celebration._id, data, token || ""),
+      celebrationsApi.update(celebration._id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["celebrations"] });
       onFinished();

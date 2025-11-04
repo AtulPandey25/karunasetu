@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node --import ./src/preload.ts src/index.ts",
+    "dev": "tsx --watch src/index.ts",
     "build": "vite build --config vite.config.ts",
     "start": "node dist/index.mjs",
     "start:local": "node --env-file=../.env dist/index.mjs",

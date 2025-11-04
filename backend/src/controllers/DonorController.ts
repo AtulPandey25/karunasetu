@@ -41,7 +41,6 @@ export class DonorController {
   }
 
   async getAll(req: Request, res: Response): Promise<void> {
-    console.log("Attempting to get all donors.");
     try {
       const { connected } = await connectMongo();
       if (!connected) {
@@ -49,9 +48,7 @@ export class DonorController {
         res.json({ donors: [] });
         return;
       }
-      console.log("Database connected, finding donors.");
       const donors = await DonorModel.find().sort({ position: 1 }).lean();
-      console.log(`Found ${donors.length} donors.`);
       res.json({ donors });
     } catch (e) {
       console.error("Error in getAll donors:", e);
@@ -124,10 +121,11 @@ export class DonorController {
         donatedAmount: donatedAmount ? Number(donatedAmount) : undefined,
         donatedCommodity: donatedCommodity || undefined,
       });
+      console.log("Donor created successfully:", doc);
 
       res.status(201).json({ donor: doc });
     } catch (e) {
-      console.error(e);
+      console.error("Error creating donor:", e);
       res.status(500).json({ error: "Failed to create donor" });
     }
   }

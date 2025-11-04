@@ -26,6 +26,14 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     data = null;
   }
 
+  if (response.status === 401) {
+    // Unauthorized, clear token and reload
+    localStorage.removeItem("adminToken");
+    // Use location.reload() to force a re-render of the admin page
+    // which will then show the login form.
+    location.reload();
+  }
+
   return {
     ok: response.ok,
     data: data,
@@ -49,7 +57,6 @@ export const galleryApi = {
   async upload(
     files: FileList,
     title: string,
-    token: string
   ): Promise<ApiResponse<{ images: any[] }>> {
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
@@ -57,21 +64,18 @@ export const galleryApi = {
     }
     if (title) formData.append("title", title);
 
-    return apiClient.post("/gallery/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
+    return api.post("/gallery/admin", formData);
   },
 
-  async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    return apiClient.delete(`/gallery/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+  async delete(id: string): Promise<ApiResponse<{ ok: boolean }>> {
+    return api.delete(`/gallery/admin/${id}`);
   },
 
   async toggleFeatured(
     id: string,
     featured: boolean,
-    token: string
   ): Promise<ApiResponse<{ image: any }>> {
-    return apiClient.patch(`/gallery/admin/${id}`, { featured }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    return api.patch(`/gallery/admin/${id}`, { featured });
   },
 };
 
@@ -85,7 +89,6 @@ export const donorsApi = {
       donatedCommodity?: string;
     },
     logo: File | null,
-    token: string
   ): Promise<ApiResponse<{ donor: any }>> {
     const formData = new FormData();
     formData.append("name", donor.name);
@@ -97,20 +100,17 @@ export const donorsApi = {
       formData.append("donatedCommodity", donor.donatedCommodity);
     if (logo) formData.append("logo", logo);
 
-    return apiClient.post("/donors/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
+    return api.post("/donors/admin", formData);
   },
 
-  async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    return apiClient.delete(`/donors/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+  async delete(id: string): Promise<ApiResponse<{ ok: boolean }>> {
+    return api.delete(`/donors/admin/${id}`);
   },
 
   async reorder(
     orderedIds: string[],
-    token: string
   ): Promise<ApiResponse<{ ok: boolean }>> {
-    return apiClient.post("/donors/admin/reorder", { orderedIds }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    return api.post("/donors/admin/reorder", { orderedIds });
   },
 };
 
@@ -125,7 +125,6 @@ export const membersApi = {
       contact?: string;
     },
     photo: File | null,
-    token: string
   ): Promise<ApiResponse<{ member: any }>> {
     const formData = new FormData();
     formData.append("name", member.name);
@@ -136,20 +135,17 @@ export const membersApi = {
     if (member.contact) formData.append("contact", member.contact);
     if (photo) formData.append("photo", photo);
 
-    return apiClient.post("/members/admin", formData, { headers: { Authorization: `Bearer ${token}` } });
+    return api.post("/members/admin", formData);
   },
 
-  async delete(id: string, token: string): Promise<ApiResponse<{ ok: boolean }>> {
-    return apiClient.delete(`/members/admin/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+  async delete(id: string): Promise<ApiResponse<{ ok: boolean }>> {
+    return api.delete(`/members/admin/${id}`);
   },
 
   async reorder(
     orderedIds: string[],
-    token: string
   ): Promise<ApiResponse<{ ok: boolean }>> {
-    return apiClient.post("/members/admin/reorder", { orderedIds }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    return api.post("/members/admin/reorder", { orderedIds });
   },
 };
 
@@ -197,3 +193,31 @@ export const apiClient = {
     return handleResponse<T>(response);
   },
 };
+
+const getToken = () => localStorage.getItem("adminToken");
+
+export const api = {
+  async get<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const headers = new Headers(options?.headers);
+    headers.set("Authorization", `Bearer ${getToken()}`);
+    return apiClient.get<T>(path, { ...options, headers });
+  },
+
+  async post<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+    const headers = new Headers(options?.headers);
+    headers.set("Authorization", `Bearer ${getToken()}`);
+    return apiClient.post<T>(path, body, { ...options, headers });
+  },
+
+  async patch<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+    const headers = new Headers(options?.headers);
+    headers.set("Authorization", `Bearer ${getToken()}`);
+    return apiClient.patch<T>(path, body, { ...options, headers });
+  },
+
+  async delete<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    const headers = new Headers(options?.headers);
+    headers.set("Authorization", `Bearer ${getToken()}`);
+    return apiClient.delete<T>(path, { ...options, headers });
+  },
+}

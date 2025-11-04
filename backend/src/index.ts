@@ -7,7 +7,7 @@ import multer from "multer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { connectMongo } from "@/db";
-import { initAdminHash } from "@/auth";
+import { initAdminUser } from "@/auth";
 
 // Import route handlers
 import { handleDemo } from "@/routes/demo";
@@ -55,7 +55,6 @@ async function startServer() {
   // Parse JSON broadly to handle proxies that tweak content-type
   app.use(express.json({ type: ["application/json", "text/plain", "application/*+json" ] }));
   app.use(express.urlencoded({ extended: true }));
-  app.use(multer().none());
 
   // Health check
   app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -77,7 +76,7 @@ async function startServer() {
   app.use("/api/orders", ordersRouter);
 
   // Await critical initializations before starting the server
-  await initAdminHash();
+  await initAdminUser();
   await connectMongo();
 
   // Start server

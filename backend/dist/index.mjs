@@ -34,38 +34,20 @@ async function connectMongo(uri) {
   }
 }
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@example.com";
-let adminPasswordHash = null;
-async function initAdminHash() {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) {
-    console.warn("ADMIN_PASSWORD not set. Admin login will be disabled.");
-    return;
-  }
-  adminPasswordHash = await hash(adminPassword, 10);
-  console.log("✅ Admin password hash initialized");
+async function hashPassword(password) {
+  return hash(password, 10);
 }
-async function verifyAdminCredentials(email, password) {
-  if (email !== ADMIN_EMAIL) {
-    return false;
-  }
-  if (!adminPasswordHash) {
-    return false;
-  }
-  if (typeof adminPasswordHash !== "string") {
-    console.error("Admin password hash is not initialized. Cannot verify credentials.");
-    return false;
-  }
-  const isMatch = await compare(password, adminPasswordHash);
-  return isMatch;
+async function comparePassword(password, hash2) {
+  return compare(password, hash2);
 }
-function createAdminToken() {
+function createToken(payload) {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!secret) {
     throw new Error("ADMIN_JWT_SECRET not configured");
   }
-  return jwt.sign({ admin: true }, secret, { expiresIn: "1h" });
+  return jwt.sign(payload, secret, { expiresIn: "1h" });
 }
-function verifyAdminToken(token) {
+function verifyToken(token) {
   const secret = process.env.ADMIN_JWT_SECRET;
   if (!secret) {
     return null;
@@ -75,6 +57,23 @@ function verifyAdminToken(token) {
   } catch {
     return null;
   }
+}
+let adminUser = {
+  email: ADMIN_EMAIL,
+  passwordHash: ""
+  // This will be set on server start
+};
+async function initAdminUser() {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) {
+    console.warn("ADMIN_PASSWORD not set. Admin login will be disabled.");
+    return;
+  }
+  adminUser.passwordHash = await hashPassword(adminPassword);
+  console.log("✅ Admin user initialized");
+}
+function getAdminUser() {
+  return adminUser;
 }
 const handleDemo = (req, res) => {
   const response = {
@@ -266,7 +265,7 @@ const requireAdminKey = (req, res, next) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
   const token = authHeader.replace("Bearer ", "");
-  const verified = verifyAdminToken(token);
+  const verified = verifyToken(token);
   if (!verified) {
     return res.status(401).json({ error: "Unauthorized" });
   }
@@ -341,7 +340,6 @@ class DonorController {
     return this.uploadMiddleware.single("logo");
   }
   async getAll(req, res) {
-    console.log("Attempting to get all donors.");
     try {
       const { connected } = await connectMongo();
       if (!connected) {
@@ -349,9 +347,7 @@ class DonorController {
         res.json({ donors: [] });
         return;
       }
-      console.log("Database connected, finding donors.");
       const donors = await DonorModel.find().sort({ position: 1 }).lean();
-      console.log(`Found ${donors.length} donors.`);
       res.json({ donors });
     } catch (e) {
       console.error("Error in getAll donors:", e);
@@ -411,9 +407,10 @@ class DonorController {
         donatedAmount: donatedAmount ? Number(donatedAmount) : void 0,
         donatedCommodity: donatedCommodity || void 0
       });
+      console.log("Donor created successfully:", doc);
       res.status(201).json({ donor: doc });
     } catch (e) {
-      console.error(e);
+      console.error("Error creating donor:", e);
       res.status(500).json({ error: "Failed to create donor" });
     }
   }
@@ -501,29 +498,37 @@ class AuthController {
   async login(req, res) {
     const { email, password } = req.body;
     if (!email || !password) {
-      res.status(400).json({ error: "Email and password required" });
+      res.status(400).json({ error: "Email and password are required" });
       return;
     }
-    if (!process.env.ADMIN_JWT_SECRET) {
-      res.status(500).json({ error: "Server misconfigured: ADMIN_JWT_SECRET not set" });
+    const adminUser2 = getAdminUser();
+    if (!adminUser2 || !adminUser2.passwordHash) {
+      res.status(500).json({ error: "Server misconfigured: Admin user not initialized" });
+      return;
+    }
+    if (email !== adminUser2.email) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    const isMatch = await comparePassword(password, adminUser2.passwordHash);
+    if (!isMatch) {
+      res.status(401).json({ error: "Invalid credentials" });
       return;
     }
     try {
-      const ok = await verifyAdminCredentials(email, password);
-      if (!ok) {
-        res.status(401).json({ error: "Invalid credentials" });
-        return;
-      }
-      const token = createAdminToken();
+      const token = createToken({ id: adminUser2.email, isAdmin: true });
       res.json({ token });
     } catch (err) {
-      const message = err?.message || "Internal error";
-      res.status(500).json({ error: message });
+      console.error("Error creating token:", err);
+      res.status(500).json({ error: "Failed to create authentication token" });
     }
+  }
+  async logout(req, res) {
+    res.status(200).json({ message: "Logged out successfully" });
   }
 }
 const router$3 = Router();
-router$3.use(json());
+router$3.use(multer().none());
 const authController = new AuthController();
 router$3.post("/login", (req, res) => authController.login(req, res));
 const MemberSchema = new Schema(
@@ -1300,7 +1305,7 @@ const OrderSchema = new Schema(
 const OrderModel = mongoose.model("Order", OrderSchema);
 const router = Router();
 router.use(json());
-router.post("/", async (req, res) => {
+router.post("/", (async (req, res) => {
   const { customerName, customerEmail, customerPhone, items } = req.body;
   if (!customerName || !customerEmail || !customerPhone || !items?.length) {
     return res.status(400).json({
@@ -1327,8 +1332,8 @@ router.post("/", async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to create order" });
   }
-});
-router.get("/:id", async (req, res) => {
+}));
+router.get("/:id", (async (req, res) => {
   const { id } = req.params;
   const { connected } = await connectMongo();
   if (!connected) {
@@ -1344,8 +1349,8 @@ router.get("/:id", async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to fetch order" });
   }
-});
-router.post("/:id/confirm", async (req, res) => {
+}));
+router.post("/:id/confirm", (async (req, res) => {
   const { id } = req.params;
   const { connected } = await connectMongo();
   if (!connected) {
@@ -1365,7 +1370,7 @@ router.post("/:id/confirm", async (req, res) => {
     console.error(e);
     res.status(500).json({ error: "Failed to confirm order payment" });
   }
-});
+}));
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 async function startServer() {
   const app = express();
@@ -1389,7 +1394,8 @@ async function startServer() {
     allowedHeaders: ["Content-Type", "Authorization"],
     optionsSuccessStatus: 204
   }));
-  app.use(express.json());
+  app.use(express.json({ type: ["application/json", "text/plain", "application/*+json"] }));
+  app.use(express.urlencoded({ extended: true }));
   app.get("/health", (_req, res) => res.json({ ok: true }));
   const uploadsPath = path.resolve(__dirname, "../public/uploads");
   app.use("/uploads", express.static(uploadsPath));
@@ -1403,7 +1409,7 @@ async function startServer() {
   app.use("/api/members", router$2);
   app.use("/api/celebrations", router$1);
   app.use("/api/orders", router);
-  await initAdminHash();
+  await initAdminUser();
   await connectMongo();
   const PORT = process.env.PORT || 8e3;
   app.listen(PORT, () => {

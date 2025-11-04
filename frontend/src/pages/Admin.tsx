@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, apiClient } from "@/lib/api-client";
 import type {
-  CreateDonorResponse,
   Donor,
   GetDonorsResponse,
   Member,
   GetMembersResponse,
 } from "../types/api";
 import { FormEvent, useEffect, useState } from "react";
-import { apiClient } from "@/lib/api-client";
+
 import {
   DndContext,
   closestCenter,
@@ -45,9 +45,6 @@ function SortableItem(props: { id: string; children: React.ReactNode }) {
 }
 
 export default function Admin() {
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("adminToken"),
-  );
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
@@ -69,87 +66,12 @@ export default function Admin() {
 
   const donorsQuery = useQuery<GetDonorsResponse>({
     queryKey: ["donors"],
-    queryFn: async () => apiClient.get("/donors").then(res => res.data || { donors: [] }),
+    queryFn: async () => api.get("/donors").then(res => res.data || { donors: [] }),
   });
   const membersQuery = useQuery<GetMembersResponse>({
     queryKey: ["members"],
-    queryFn: async () => apiClient.get("/members").then(res => res.data || { members: [] }),
+    queryFn: async () => api.get("/members").then(res => res.data || { members: [] }),
   });
-
-  useEffect(() => {
-    if (donorsQuery.data?.donors) {
-      setOrderedDonors(donorsQuery.data.donors);
-    }
-  }, [donorsQuery.data]);
-
-  useEffect(() => {
-    if (membersQuery.data?.members) {
-      setOrderedMembers(membersQuery.data.members);
-    }
-  }, [membersQuery.data]);
-
-  useEffect(() => {
-    if (token) localStorage.setItem("adminToken", token);
-    else localStorage.removeItem("adminToken");
-  }, [token]);
-
-  function isMutating(m: any) {
-    return !!(
-      m &&
-      ((m as any).isLoading ??
-        (m as any).isPending ??
-        (m as any).state?.status === "loading")
-    );
-  }
-
-  const handleUnauthorized = (res: Response) => {
-    if (res.status === 401) {
-      setToken(null);
-      alert("Session expired. Please log in again.");
-    }
-  };
-
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const { authApi } = await import("@/lib/api-client");
-      const trimmedEmail = email.trim();
-      const trimmedPassword = password.trim();
-      if (!trimmedEmail || !trimmedPassword) {
-        throw new Error("Email and password required");
-      }
-      const result = await authApi.login(trimmedEmail, trimmedPassword);
-      if (!result.ok) throw new Error(result.error || "Login failed");
-      return result.data;
-    },
-    onSuccess: (data) => {
-      setToken(data!.token);
-      alert("Logged in");
-    },
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async () => {
-      if (!files || files.length === 0) throw new Error("No files");
-      const { galleryApi } = await import("@/lib/api-client");
-      const result = await galleryApi.upload(files, title || "Donation", token || "");
-      if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
-        throw new Error(result.error || "Upload failed");
-      }
-      return result.data;
-    },
-    onSuccess: () => {
-      setTitle("");
-      setFiles(null);
-      const input = document.getElementById(
-        "multi-images",
-      ) as HTMLInputElement | null;
-      if (input) input.value = "";
-      qc.invalidateQueries({ queryKey: ["gallery"] });
-      alert("Images uploaded");
-    },
-  });
-
   const galleryQuery = useQuery<{
     images: { _id?: string; title: string; url: string; featured?: boolean }[];
   }>({
@@ -157,12 +79,27 @@ export default function Admin() {
     queryFn: async () => apiClient.get("/gallery").then(res => res.data || { images: [] }),
   });
 
+  useEffect(() => {
+    qc.invalidateQueries({ queryKey: ["donors"] });
+    qc.invalidateQueries({ queryKey: ["members"] });
+    qc.invalidateQueries({ queryKey: ["gallery"] });
+    qc.invalidateQueries({ queryKey: ["celebrations"] });
+  }, [qc]);
+
+  useEffect(() => {
+    if (donorsQuery.data?.donors) {
+      setOrderedDonors(donorsQuery.data.donors);
+    }
+    if (membersQuery.data?.members) {
+      setOrderedMembers(membersQuery.data.members);
+    }
+  }, [donorsQuery.data, membersQuery.data]);
+
   const deleteGalleryMutation = useMutation({
     mutationFn: async (id: string) => {
       const { galleryApi } = await import("@/lib/api-client");
-      const result = await galleryApi.delete(id, token || "");
+      const result = await galleryApi.delete(id);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -176,9 +113,8 @@ export default function Admin() {
   const toggleFeaturedMutation = useMutation({
     mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
       const { galleryApi } = await import("@/lib/api-client");
-      const result = await galleryApi.toggleFeatured(id, featured, token || "");
+      const result = await galleryApi.toggleFeatured(id, featured);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -198,9 +134,8 @@ export default function Admin() {
       donatedCommodity?: string;
     }) => {
       const { donorsApi } = await import("@/lib/api-client");
-      const result = await donorsApi.create(d, donorLogo, token || "");
+      const result = await donorsApi.create(d, donorLogo);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -216,9 +151,8 @@ export default function Admin() {
   const deleteDonorMutation = useMutation({
     mutationFn: async (id: string) => {
       const { donorsApi } = await import("@/lib/api-client");
-      const result = await donorsApi.delete(id, token || "");
+      const result = await donorsApi.delete(id);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -242,9 +176,8 @@ export default function Admin() {
       contact?: string;
     }) => {
       const { membersApi } = await import("@/lib/api-client");
-      const result = await membersApi.create(m, memberPhoto, token || "");
+      const result = await membersApi.create(m, memberPhoto);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -259,9 +192,8 @@ export default function Admin() {
   const deleteMemberMutation = useMutation({
     mutationFn: async (id: string) => {
       const { membersApi } = await import("@/lib/api-client");
-      const result = await membersApi.delete(id, token || "");
+      const result = await membersApi.delete(id);
       if (!result.ok) {
-        if (result.status === 401) handleUnauthorized(new Response());
         throw new Error(result.error || "Failed");
       }
       return result.data;
@@ -278,7 +210,7 @@ export default function Admin() {
   const reorderDonorsMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       const { donorsApi } = await import("@/lib/api-client");
-      const result = await donorsApi.reorder(orderedIds, token || "");
+      const result = await donorsApi.reorder(orderedIds);
       if (!result.ok) throw new Error(result.error || "Failed to reorder donors");
       return result.data;
     },
@@ -296,7 +228,7 @@ export default function Admin() {
   const reorderMembersMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       const { membersApi } = await import("@/lib/api-client");
-      const result = await membersApi.reorder(orderedIds, token || "");
+      const result = await membersApi.reorder(orderedIds);
       if (!result.ok) throw new Error(result.error || "Failed to reorder members");
       return result.data;
     },
@@ -359,49 +291,81 @@ export default function Admin() {
     }
   }
 
-  if (!token) {
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      if (!files) return;
+      const { galleryApi } = await import("@/lib/api-client");
+      const result = await galleryApi.upload(files, title);
+      if (!result.ok) {
+        throw new Error(result.error || "Failed to upload");
+      }
+      return result.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["gallery"] });
+      setTitle("");
+      setFiles(null);
+      const input = document.getElementById(
+        "multi-images",
+      ) as HTMLInputElement | null;
+      if (input) input.value = "";
+    },
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async () => {
+      const { authApi } = await import("@/lib/api-client");
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
+      if (!trimmedEmail || !trimmedPassword) {
+        throw new Error("Email and password required");
+      }
+      const result = await authApi.login(trimmedEmail, trimmedPassword);
+      if (!result.ok) throw new Error(result.error || "Login failed");
+      return result.data;
+    },
+    onSuccess: (data) => {
+      localStorage.setItem("adminToken", data!.token);
+      location.reload();
+    },
+  });
+
+  if (!localStorage.getItem("adminToken")) {
     return (
-      <section className="container py-12 md:py-16">
-        <h1 className="text-3xl font-bold">Admin Login</h1>
-        <p className="text-muted-foreground mt-2">
-          Sign in with your admin credentials.
-        </p>
+      <div className="w-screen h-screen flex items-center justify-center">
         <form
-          className="mt-6 w-full max-w-md"
+          className="p-6 border rounded-lg w-full max-w-sm"
           onSubmit={(e) => {
             e.preventDefault();
             loginMutation.mutate();
           }}
         >
-          <input
-            className="w-full rounded-md border px-3 py-2 mb-3"
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-          />
-          <input
-            className="w-full rounded-md border px-3 py-2 mb-3"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-          />
-          <div className="flex gap-3">
+          <h1 className="text-2xl font-bold mb-3">Admin Login</h1>
+          <div className="grid gap-3">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-md border px-3 py-2"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-md border px-3 py-2"
+            />
             <button
               type="submit"
-              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
-              disabled={isMutating(loginMutation) || !email.trim() || !password.trim()}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground shadow disabled:opacity-50"
+              disabled={loginMutation.isPending}
             >
-              Login
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </button>
           </div>
         </form>
-      </section>
+      </div>
     );
   }
 
@@ -413,8 +377,8 @@ export default function Admin() {
           <button
             className="mr-3 rounded-md border px-3 py-2"
             onClick={() => {
-              setToken(null);
-              alert("Logged out");
+              localStorage.removeItem("adminToken");
+              location.reload();
             }}
           >
             Logout
@@ -472,11 +436,9 @@ export default function Admin() {
                 <button
                   className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground shadow"
                   onClick={() => uploadMutation.mutate()}
-                  disabled={
-                    !files || files.length === 0 || isMutating(uploadMutation)
-                  }
+                  disabled={!files || files.length === 0 || uploadMutation.isPending}
                 >
-                  {isMutating(uploadMutation)
+                  {uploadMutation.isPending
                     ? "Uploading..."
                     : "Upload Images"}
                 </button>
@@ -521,7 +483,7 @@ export default function Admin() {
                               e.stopPropagation();
                               img._id && deleteGalleryMutation.mutate(img._id)
                             }}
-                            disabled={isMutating(deleteGalleryMutation)}
+                            disabled={deleteGalleryMutation.isPending}
                           >
                             Delete
                           </button>
@@ -553,9 +515,9 @@ export default function Admin() {
               <button
                 type="submit"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground shadow disabled:opacity-50"
-                disabled={isMutating(addDonorMutation)}
+                disabled={addDonorMutation.isPending}
               >
-                {isMutating(addDonorMutation) ? "Adding..." : "Add Donor"}
+                {addDonorMutation.isPending ? "Adding..." : "Add Donor"}
               </button>
             </form>
 
@@ -571,9 +533,9 @@ export default function Admin() {
                     setIsDragMode(true);
                   }
                 }}
-                disabled={isMutating(reorderDonorsMutation)}
+                disabled={reorderDonorsMutation.isPending}
               >
-                {isDragMode ? (isMutating(reorderDonorsMutation) ? "Saving..." : "Save Order") : "Change Order"}
+                {isDragMode ? (reorderDonorsMutation.isPending ? "Saving..." : "Save Order") : "Change Order"}
               </button>
             </div>
             {isDragMode ? (
@@ -638,9 +600,9 @@ export default function Admin() {
                         onClick={() => {
                           d._id && deleteDonorMutation.mutate(d._id)
                         }}
-                        disabled={isMutating(deleteDonorMutation)}
+                        disabled={deleteDonorMutation.isPending}
                       >
-                        {isMutating(deleteDonorMutation) ? 'Deleting...' : 'Delete'}
+                        {deleteDonorMutation.isPending ? 'Deleting...' : 'Delete'}
                       </button>
                     </div>
                   </div>
@@ -682,9 +644,9 @@ export default function Admin() {
               <button
                 type="submit"
                 className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground shadow disabled:opacity-50"
-                disabled={isMutating(addMemberMutation)}
+                disabled={addMemberMutation.isPending}
               >
-                {isMutating(addMemberMutation) ? "Adding..." : "Add Member"}
+                {addMemberMutation.isPending ? "Adding..." : "Add Member"}
               </button>
             </form>
 
@@ -700,9 +662,9 @@ export default function Admin() {
                     setIsDragMode(true);
                   }
                 }}
-                disabled={isMutating(reorderMembersMutation)}
+                disabled={reorderMembersMutation.isPending}
               >
-                {isDragMode ? (isMutating(reorderMembersMutation) ? "Saving..." : "Save Order") : "Change Order"}
+                {isDragMode ? (reorderMembersMutation.isPending ? "Saving..." : "Save Order") : "Change Order"}
               </button>
             </div>
             {isDragMode ? (
@@ -783,9 +745,9 @@ export default function Admin() {
                         onClick={() => {
                           m._id && deleteMemberMutation.mutate(m._id)
                         }}
-                        disabled={isMutating(deleteMemberMutation)}
+                        disabled={deleteMemberMutation.isPending}
                       >
-                        {isMutating(deleteMemberMutation) ? 'Deleting...' : 'Delete'}
+                        {deleteMemberMutation.isPending ? 'Deleting...' : 'Delete'}
                       </button>
                     </div>
                   </div>
