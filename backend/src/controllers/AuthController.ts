@@ -22,18 +22,6 @@ export class AuthController {
       } catch {}
     }
 
-    // If body is empty object, try parsing rawBody captured by middleware
-    if (body && typeof body === 'object' && Object.keys(body).length === 0) {
-      const rawBody = (req as any).rawBody as string | undefined;
-      if (rawBody && rawBody.trim().length > 0) {
-        try {
-          body = JSON.parse(rawBody);
-        } catch {
-          // ignore
-        }
-      }
-    }
-
     // If still not an object, reset to empty
     if (!body || typeof body !== 'object') body = {};
 

@@ -51,18 +51,6 @@ async function startServer() {
     optionsSuccessStatus: 204,
   }));
 
-  // Capture raw body for cases where upstream/proxies confuse body parsers
-  app.use((req, _res, next) => {
-    let raw = "";
-    req.on("data", (chunk) => {
-      raw += chunk;
-    });
-    req.on("end", () => {
-      (req as any).rawBody = raw;
-      next();
-    });
-  });
-
   // Parse JSON broadly to handle proxies that tweak content-type
   app.use(express.json({ type: ["application/json", "text/plain", "application/*+json" ] }));
   app.use(express.urlencoded({ extended: true }));
