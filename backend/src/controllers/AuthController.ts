@@ -7,11 +7,14 @@ import {
 export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
     const { email, password } = (req.body ?? {}) as {
-      email?: string;
-      password?: string;
+      email?: unknown;
+      password?: unknown;
     };
 
-    if (!email || !password) {
+    const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+    const normalizedPassword = typeof password === 'string' ? password.trim() : '';
+
+    if (!normalizedEmail || !normalizedPassword) {
       res.status(400).json({ error: "Email and password required" });
       return;
     }
@@ -23,7 +26,7 @@ export class AuthController {
     }
 
     try {
-      const ok = await verifyAdminCredentials(email, password);
+      const ok = await verifyAdminCredentials(normalizedEmail, normalizedPassword);
       if (!ok) {
         res.status(401).json({ error: "Invalid credentials" });
         return;
