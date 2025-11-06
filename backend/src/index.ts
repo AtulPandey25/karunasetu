@@ -5,6 +5,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 
+import bodyParser from "body-parser";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { connectMongo } from "@/db";
 import { initAdminUser } from "@/auth";
@@ -52,8 +54,8 @@ async function startServer() {
     optionsSuccessStatus: 204,
   }));
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
   // Health check
   app.get("/health", (_req, res) => res.json({ ok: true }));
