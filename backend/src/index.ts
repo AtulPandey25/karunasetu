@@ -52,8 +52,7 @@ async function startServer() {
     optionsSuccessStatus: 204,
   }));
 
-  // Parse JSON broadly to handle proxies that tweak content-type
-  app.use(express.json({ type: ["application/json", "text/plain", "application/*+json" ] }));
+  app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
   // Health check
