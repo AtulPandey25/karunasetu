@@ -129,11 +129,34 @@ export default function Index() {
                 </Link>
               </div>
               <Link
-                to="/celebration"
-                className="inline-flex w-[270px] justify-center items-center rounded-md bg-gradient-to-r from-yellow-400 to-orange-500 px-5 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                Celebrate
-              </Link>
+  to="/celebration"
+  className="
+    relative inline-flex w-[270px] justify-center items-center
+    px-5 py-3 font-semibold text-white tracking-wide
+    rounded-xl overflow-hidden
+
+    bg-gradient-to-r from-indigo-500 via-purple-600 to-fuchsia-600
+    shadow-[0_4px_20px_rgba(88,80,239,0.45)]
+    transition-all duration-500 ease-out
+
+    hover:shadow-[0_8px_30px_rgba(120,75,255,0.7)]
+    hover:scale-[1.06]
+    hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500
+  "
+>
+  <span
+    className="
+      absolute inset-0 opacity-20 
+      bg-gradient-to-r from-white/40 to-transparent
+      translate-x-[-100%]
+      hover:translate-x-[100%]
+      transition-transform duration-700 ease-out
+    "
+  ></span>
+
+  Celebrate
+</Link>
+
             </div>
           </div>
           <div className="relative">

@@ -270,6 +270,7 @@ export class CelebrationController {
   }
 
   async reorder(req: Request, res: Response): Promise<void> {
+    console.log("Reorder request body:", req.body);
     const { orderedIds } = req.body as { orderedIds?: string[] };
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
