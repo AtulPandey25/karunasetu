@@ -156,38 +156,32 @@ export const apiClient = {
   },
 
   async post<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const headers = new Headers(options?.headers);
-    if (!(body instanceof FormData)) {
-      headers.set('Content-Type', 'application/json');
-    }
-
     const response = await fetch(`${API_BASE}/api${path}`, {
-      method: 'POST',
+      method: "POST",
       ...options,
-      headers,
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body:
+        body instanceof FormData || typeof body === "string"
+          ? body
+          : JSON.stringify(body),
     });
     return handleResponse<T>(response);
   },
 
   async patch<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
-    const headers = new Headers(options?.headers);
-    if (!(body instanceof FormData)) {
-      headers.set('Content-Type', 'application/json');
-    }
-
     const response = await fetch(`${API_BASE}/api${path}`, {
-      method: 'PATCH',
+      method: "PATCH",
       ...options,
-      headers,
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body:
+        body instanceof FormData || typeof body === "string"
+          ? body
+          : JSON.stringify(body),
     });
     return handleResponse<T>(response);
   },
 
   async delete<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
     const response = await fetch(`${API_BASE}/api${path}`, {
-      method: 'DELETE',
+      method: "DELETE",
       ...options,
     });
     return handleResponse<T>(response);
@@ -203,15 +197,29 @@ export const api = {
     return apiClient.get<T>(path, { ...options, headers });
   },
 
-  async post<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async post<T>(
+    path: string,
+    body: any,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
     const headers = new Headers(options?.headers);
     headers.set("Authorization", `Bearer ${getToken()}`);
+    if (!(body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
     return apiClient.post<T>(path, body, { ...options, headers });
   },
 
-  async patch<T>(path: string, body: any, options?: RequestInit): Promise<ApiResponse<T>> {
+  async patch<T>(
+    path: string,
+    body: any,
+    options?: RequestInit
+  ): Promise<ApiResponse<T>> {
     const headers = new Headers(options?.headers);
-    headers.set("Authorization", `Bearer ${getToken()}`);
+headers.set("Authorization", `Bearer ${getToken()}`);
+    if (!(body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
     return apiClient.patch<T>(path, body, { ...options, headers });
   },
 
@@ -220,4 +228,4 @@ export const api = {
     headers.set("Authorization", `Bearer ${getToken()}`);
     return apiClient.delete<T>(path, { ...options, headers });
   },
-}
+};

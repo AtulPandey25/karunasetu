@@ -130,7 +130,7 @@ export default function Index() {
               </div>
               <Link
                 to="/celebration"
-                className="inline-flex items-center w-[270px] justify-center rounded-md border border-yellow-500 bg-white px-5 py-3 text-yellow-700 shadow hover:bg-yellow-50"
+                className="inline-flex items-center w-[270px] justify-center rounded-md bg-gray-100 px-5 py-3 font-bold text-yellow-600 border border-yellow-500 shadow hover:bg-gray-200"
               >
                 Celebrate
               </Link>

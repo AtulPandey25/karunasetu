@@ -76,7 +76,7 @@ export default function Layout() {
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <NavItem to="/">Home</NavItem>
 
-            <NavItem to="/celebration">Celebration</NavItem>
+            <NavItem to="/celebration" className="text-yellow-500 hover:text-yellow-600">Celebration</NavItem>
             <NavItem to="/gallery">Gallery</NavItem>
             <NavItem to="/admin">Admin</NavItem>
             <CartIcon />
@@ -147,7 +147,7 @@ export default function Layout() {
             <Link
               to="/celebration"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-primary hover:bg-gray-50"
+              className="block px-3 py-2 rounded-md text-base font-medium text-yellow-500 hover:text-yellow-600 hover:bg-gray-50"
             >
               Celebration
             </Link>
@@ -216,7 +216,7 @@ export default function Layout() {
   );
 }
 
-function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
+function NavItem({ to, children, className }: { to: string; children: React.ReactNode; className?: string }) {
   return (
     <NavLink
       to={to}
@@ -224,6 +224,7 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
         cn(
           "hover:text-primary transition-colors",
           isActive && "text-primary font-medium",
+          className,
         )
       }
     >

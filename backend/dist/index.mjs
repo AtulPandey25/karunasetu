@@ -143,7 +143,7 @@ class GalleryController {
   }
   async toggleFeatured(req, res) {
     const id = req.params.id;
-    const { featured } = req.body;
+    const { featured } = req.body || {};
     const { connected } = await connectMongo();
     if (!connected) {
       res.status(503).json({ error: "Database not configured" });
@@ -450,7 +450,7 @@ class DonorController {
   }
   async reorder(req, res) {
     console.log("Reorder donors request received");
-    const { orderedIds } = req.body;
+    const { orderedIds } = req.body || {};
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
       return;
@@ -679,7 +679,7 @@ class MemberController {
   }
   async reorder(req, res) {
     console.log("Reorder members request received");
-    const { orderedIds } = req.body;
+    const { orderedIds } = req.body || {};
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
       return;
