@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import express, { Router, json } from "express";
 import cors from "cors";
+import bodyParser from "body-parser";
 import mongoose, { Schema } from "mongoose";
 import { hash, compare } from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -449,8 +450,8 @@ class DonorController {
     }
   }
   async reorder(req, res) {
-    console.log("Reorder donors request received");
-    const { orderedIds } = req.body || {};
+    console.log("Reorder donors request body:", req.body);
+    const { orderedIds } = req.body;
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
       return;
@@ -678,8 +679,8 @@ class MemberController {
     }
   }
   async reorder(req, res) {
-    console.log("Reorder members request received");
-    const { orderedIds } = req.body || {};
+    console.log("Reorder members request body:", req.body);
+    const { orderedIds } = req.body;
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
       return;
@@ -961,6 +962,7 @@ class CelebrationController {
     }
   }
   async reorder(req, res) {
+    console.log("Reorder request body:", req.body);
     const { orderedIds } = req.body;
     if (!Array.isArray(orderedIds)) {
       res.status(400).json({ error: "orderedIds must be an array" });
@@ -1394,8 +1396,8 @@ async function startServer() {
     allowedHeaders: ["Content-Type", "Authorization"],
     optionsSuccessStatus: 204
   }));
-  app.use(express.json({ type: ["application/json", "text/plain", "application/*+json"] }));
-  app.use(express.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
   app.get("/health", (_req, res) => res.json({ ok: true }));
   const uploadsPath = path.resolve(__dirname, "../public/uploads");
   app.use("/uploads", express.static(uploadsPath));
