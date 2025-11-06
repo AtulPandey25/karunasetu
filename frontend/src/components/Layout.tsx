@@ -119,29 +119,7 @@ export default function Layout() {
             >
               Home
             </Link>
-            {/* Show these links only on the homepage */}
-            {location.pathname === "/" && (
-              <>
-                <a
-                  href="#about"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-primary hover:bg-gray-50"
-                >
-                  About Us
-                </a>
-                <a
-                  href="#achievements"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-primary hover:bg-gray-50"
-                >
-                  Our Work
-                </a>
-                <a
-                  href="#contact"
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-primary hover:bg-gray-50"
-                >
-                  Contact Us
-                </a>
-              </>
-            )}
+
             {/* Show Donate button only on the homepage */}
 
             <Link

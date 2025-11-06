@@ -116,46 +116,25 @@ export default function Index() {
             <div className="mt-8 flex flex-col gap-3">
               <div className="flex flex-wrap gap-3">
                 <a
-                  href="#donate"
-                  className="inline-flex items-center rounded-md bg-primary px-5 py-3 text-primary-foreground shadow hover:opacity-90"
+                  onClick={() => document.querySelector('#donate')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-flex items-center rounded-md border border-gray-500 bg-white px-5 py-3 text-gray-800 hover:bg-yellow-500 hover:text-white"
                 >
                   Donate Now
                 </a>
                 <Link
                   to="/gallery"
-                  className="inline-flex items-center rounded-md border px-5 py-3 hover:bg-muted"
+                  className="inline-flex items-center rounded-md border border-gray-500 bg-white px-5 py-3 text-gray-800 hover:bg-yellow-500 hover:text-white"
                 >
                   View Gallery
                 </Link>
               </div>
               <Link
-  to="/celebration"
-  className="
-    relative inline-flex w-[270px] justify-center items-center
-    px-5 py-3 font-semibold text-white tracking-wide
-    rounded-xl overflow-hidden
+                to="/celebration"
+                className="inline-flex w-[270px] justify-center items-center rounded-md bg-primary px-5 py-3 text-primary-foreground shadow hover:opacity-90"
+              >
+                Celebrate
+              </Link>
 
-    bg-gradient-to-r from-indigo-500 via-purple-600 to-fuchsia-600
-    shadow-[0_4px_20px_rgba(88,80,239,0.45)]
-    transition-all duration-500 ease-out
-
-    hover:shadow-[0_8px_30px_rgba(120,75,255,0.7)]
-    hover:scale-[1.06]
-    hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500
-  "
->
-  <span
-    className="
-      absolute inset-0 opacity-20 
-      bg-gradient-to-r from-white/40 to-transparent
-      translate-x-[-100%]
-      hover:translate-x-[100%]
-      transition-transform duration-700 ease-out
-    "
-  ></span>
-
-  Celebrate
-</Link>
 
             </div>
           </div>
