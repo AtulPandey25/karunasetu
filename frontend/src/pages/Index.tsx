@@ -360,7 +360,7 @@ export default function Index() {
             <div className="text-center">
               <img src="/qr-code.png" alt="UPI QR Code" className="mx-auto mb-4" />
               <a
-                href={`upi://pay?pa=6394793164@amazonpay&pn=Atul Pandey&am=${displayAmount}&cu=INR`}
+                href={`upi://pay?pa=sudhanshuharsh2841-1@okhdfcbank&pn=KarunaSetu Foundation&am=${displayAmount}&cu=INR`}
                 className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-primary-foreground shadow hover:opacity-90"
               >
                 Pay with UPI
